@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Task Manager + IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Éditeur de tâches (tasks.json) + Chat IA</h1>
+    </header>
+    <div class="wrap">
+
+        <div class="toolbar">
+            <div class="group">
+                <button class="primary" id="btnNew">🆕 Nouveau</button>
+                <button id="btnOpen">📂 Ouvrir</button>
+                <button id="btnSave">💾 Sauvegarder JSON</button>
+                <button id="btnExportMD">📄 Exporter Markdown</button>
+                <button id="btnCopyPrompt">📋 Copier prompt initial</button>
+            </div>
+            <div class="group">
+                <label class="muted">Modèle JSON normalisé</label>
+                <select id="schemaSelect">
+                    <option value="v1" selected>v1 (id,title,description,priority,done,dependencies,tags)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- TABLEAU TÂCHES -->
+            <section class="card">
+                <h2>Tâches</h2>
+                <div class="row-actions" style="margin-bottom:8px;">
+                    <button id="btnAdd">➕ Ajouter une tâche</button>
+                    <button id="btnSort">↕️ Réordonner (T… croissant)</button>
+                </div>
+                <div style="overflow:auto; max-height: 60vh;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">Done</th>
+                                <th style="width:110px;">ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th style="width:120px;">Priority</th>
+                                <th>Dependencies</th>
+                                <th>Tags</th>
+                                <th style="width:120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PANNEAU LATÉRAL: RÉCENTS + CHAT -->
+            <aside class="card">
+                <h2>Chat IA</h2>
+                <div class="group" style="margin-bottom:8px;">
+                    <input type="password" id="apiKey" placeholder="OpenAI API Key" style="min-width:220px;" />
+                    <select id="model">
+                        <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+                        <option value="gpt-4o">gpt-4o</option>
+                    </select>
+                </div>
+                <div class="group" style="display:block; width:100%;">
+                    <label for="systemPrompt" class="muted">Prompt système (impose JSON valide)</label>
+                    <textarea id="systemPrompt" rows="5" style="width:100%;">Tu es un assistant qui gère un fichier tasks.json.
+Réponds UNIQUEMENT par du JSON strict valide.
+Schéma attendu (v1): {"tasks":[{"id":"T001","title":"...","description":"...","priority":"high|medium|low","done":false,"dependencies":[],"tags":[]}]}.
+- N'ajoute pas de texte hors JSON.
+- Si le JSON actuel est fourni, retourne une version mise à jour en respectant le schéma.
+- Conserve les IDs existants, ajoute-en de nouveaux si nécessaire (format T###).</textarea>
+                </div>
+                <div id="chatBox" class="card" style="margin:8px 0 8px; padding:10px;"></div>
+                <textarea id="userMsg" rows="4" placeholder="Ex: Décompose T002 en 3 sous-tâches dépendantes…"
+                    style="width:100%;"></textarea>
+                <div class="row-actions" style="margin-top:8px;">
+                    <button id="btnSend">Envoyer à l’IA</button>
+                    <button id="btnInject">✅ Inclure JSON actuel</button>
+                </div>
+                <p class="muted">⚠️ L'appel direct au navigateur expose votre clé API au code client. Pour une prod
+                    sécurisée, passez par un proxy serveur ou OpenRouter avec clés côté serveur.</p>
+            </aside>
+        </div>
+    </div>
+
+    <script src="dist/renderer.js"></script>
+</body>
+
+</html>
