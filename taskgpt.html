@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Task Manager + IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #101937;
+            --muted: #dbe3ff;
+            --line: #2a345d;
+            --accent: #7aa2ff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+            background: var(--bg);
+            color: var(--muted);
+        }
+
+        header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, #0c1430, #0b1020);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: .3px;
+        }
+
+        .wrap {
+            padding: 18px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .toolbar .group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        button,
+        input[type="file"],
+        input[type="password"],
+        input[type="text"],
+        select,
+        textarea {
+            border: 1px solid var(--line);
+            background: #0e1733;
+            color: var(--muted);
+            padding: 8px 10px;
+            border-radius: 10px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: #10235a;
+            border-color: #27428f;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: #cfe0ff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        thead th {
+            background: #0f1a3a;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid var(--line);
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #0e1733;
+        }
+
+        td[contenteditable] {
+            outline: none;
+        }
+
+        .checkbox {
+            display: flex;
+            justify-content: center;
+        }
+
+        #recentList {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        #recentList li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #0f1b3f;
+            border: 1px solid #22346f;
+            padding: 8px 10px;
+            border-radius: 10px;
+        }
+
+        #chatBox {
+            height: 260px;
+            overflow-y: auto;
+            background: #0f1b3f;
+            border: 1px solid #22346f;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .msg {
+            margin: 6px 0;
+        }
+
+        .msg.user {
+            color: #b0c9ff;
+        }
+
+        .msg.ai {
+            color: #a7ffcf;
+        }
+
+        .muted {
+            color: #a5b4d6;
+            opacity: .8;
+            font-size: 12px;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Éditeur de tâches (tasks.json) + Chat IA</h1>
+    </header>
+    <div class="wrap">
+
+        <div class="toolbar">
+            <div class="group">
+                <button class="primary" id="btnNew">🆕 Nouveau</button>
+                <input type="file" id="fileInput" accept="application/json" />
+                <button id="btnSave">💾 Sauvegarder JSON</button>
+                <button id="btnExportMD">📄 Exporter Markdown</button>
+                <button id="btnCopyPrompt">📋 Copier prompt initial</button>
+            </div>
+            <div class="group">
+                <label class="muted">Modèle JSON normalisé</label>
+                <select id="schemaSelect">
+                    <option value="v1" selected>v1 (id,title,description,priority,done,dependencies,tags)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- TABLEAU TÂCHES -->
+            <section class="card">
+                <h2>Tâches</h2>
+                <div class="row-actions" style="margin-bottom:8px;">
+                    <button id="btnAdd">➕ Ajouter une tâche</button>
+                    <button id="btnSort">↕️ Réordonner (T… croissant)</button>
+                </div>
+                <div style="overflow:auto; max-height: 60vh;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">Done</th>
+                                <th style="width:110px;">ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th style="width:120px;">Priority</th>
+                                <th>Dependencies</th>
+                                <th>Tags</th>
+                                <th style="width:120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PANNEAU LATÉRAL: RÉCENTS + CHAT -->
+            <aside class="card">
+                <h2>Fichiers récents</h2>
+                <ul id="recentList"></ul>
+                <p class="muted">Note: les navigateurs ne permettent pas de rouvrir un fichier disque sans action de ta
+                    part. Cette liste charge un <em>instantané</em> sauvegardé localement. Pour une réouverture directe
+                    du vrai fichier, utiliser Chromium avec l'API File System.</p>
+
+                <h2 style="margin-top:16px;">Chat IA</h2>
+                <div class="group" style="margin-bottom:8px;">
+                    <input type="password" id="apiKey" placeholder="OpenAI API Key" style="min-width:220px;" />
+                    <select id="model">
+                        <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+                        <option value="gpt-4o">gpt-4o</option>
+                    </select>
+                </div>
+                <div class="group" style="display:block; width:100%;">
+                    <label for="systemPrompt" class="muted">Prompt système (impose JSON valide)</label>
+                    <textarea id="systemPrompt" rows="5" style="width:100%;">Tu es un assistant qui gère un fichier tasks.json.
+Réponds UNIQUEMENT par du JSON strict valide.
+Schéma attendu (v1): {"tasks":[{"id":"T001","title":"...","description":"...","priority":"high|medium|low","done":false,"dependencies":[],"tags":[]}]}.
+- N'ajoute pas de texte hors JSON.
+- Si le JSON actuel est fourni, retourne une version mise à jour en respectant le schéma.
+- Conserve les IDs existants, ajoute-en de nouveaux si nécessaire (format T###).</textarea>
+                </div>
+                <div id="chatBox" class="card" style="margin:8px 0 8px; padding:10px;"></div>
+                <textarea id="userMsg" rows="4" placeholder="Ex: Décompose T002 en 3 sous-tâches dépendantes…"
+                    style="width:100%;"></textarea>
+                <div class="row-actions" style="margin-top:8px;">
+                    <button id="btnSend">Envoyer à l’IA</button>
+                    <button id="btnInject">✅ Inclure JSON actuel</button>
+                </div>
+                <p class="muted">⚠️ L'appel direct au navigateur expose votre clé API au code client. Pour une prod
+                    sécurisée, passez par un proxy serveur ou OpenRouter avec clés côté serveur.</p>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // ====== ÉTAT ======
+        const LS_RECENTS_KEY = 'task_editor_recent_snapshots_v1';
+        let state = {
+            schema: 'v1',
+            data: { tasks: [] },
+        };
+
+        // ====== UTILITAIRES ======
+        const $ = sel => document.querySelector(sel);
+        function uid() { const n = state.data.tasks.length + 1; return 'T' + String(n).padStart(3, '0'); }
+        function toMD(data) {
+            const lines = ['# Tasks', ''];
+            for (const t of data.tasks) {
+                const check = t.done ? 'x' : ' ';
+                const prio = t.priority || 'n/a';
+                const deps = (t.dependencies || []).join(', ');
+                const tags = (t.tags || []).join(', ');
+                lines.push(`- [${check}] **${t.id}** ${t.title || ''} (prio: ${prio})`);
+                if (t.description) lines.push(`  - ${t.description}`);
+                if (deps) lines.push(`  - deps: ${deps}`);
+                if (tags) lines.push(`  - tags: ${tags}`);
+            }
+            return lines.join('\n');
+        }
+        function download(filename, text, type = 'text/plain') {
+            const blob = new Blob([text], { type });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename; a.click();
+        }
+
+        // ====== RENDU TABLE ======
+        function renderTable() {
+            const tbody = $('#tbody');
+            tbody.innerHTML = '';
+            state.data.tasks.forEach((t, idx) => {
+                const tr = document.createElement('tr');
+
+                // done
+                const tdDone = document.createElement('td'); tdDone.className = 'checkbox';
+                const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!t.done; cb.onchange = () => { t.done = cb.checked; saveSnapshot('auto'); };
+                tdDone.appendChild(cb);
+
+                // id (readonly, mais éditable via double-clic si besoin)
+                const tdId = document.createElement('td'); tdId.textContent = t.id || ''; tdId.title = 'Double-clic pour éditer';
+                tdId.ondblclick = () => { const val = prompt('Modifier ID', t.id || ''); if (val) { t.id = val; renderTable(); saveSnapshot('auto'); } };
+
+                // title
+                const tdTitle = document.createElement('td'); tdTitle.contentEditable = true; tdTitle.textContent = t.title || '';
+                tdTitle.oninput = () => { t.title = tdTitle.textContent; };
+
+                // description
+                const tdDesc = document.createElement('td'); tdDesc.contentEditable = true; tdDesc.textContent = t.description || '';
+                tdDesc.oninput = () => { t.description = tdDesc.textContent; };
+
+                // priority
+                const tdPrio = document.createElement('td'); tdPrio.contentEditable = true; tdPrio.textContent = t.priority || '';
+                tdPrio.oninput = () => { t.priority = tdPrio.textContent; };
+
+                // dependencies
+                const tdDeps = document.createElement('td'); tdDeps.contentEditable = true; tdDeps.textContent = (t.dependencies || []).join(', ');
+                tdDeps.oninput = () => { t.dependencies = tdDeps.textContent.split(',').map(s => s.trim()).filter(Boolean); };
+
+                // tags
+                const tdTags = document.createElement('td'); tdTags.contentEditable = true; tdTags.textContent = (t.tags || []).join(', ');
+                tdTags.oninput = () => { t.tags = tdTags.textContent.split(',').map(s => s.trim()).filter(Boolean); };
+
+                // actions
+                const tdActions = document.createElement('td');
+                const bUp = document.createElement('button'); bUp.textContent = '↑'; bUp.onclick = () => { if (idx > 0) { const tmp = state.data.tasks[idx - 1]; state.data.tasks[idx - 1] = state.data.tasks[idx]; state.data.tasks[idx] = tmp; renderTable(); saveSnapshot('auto'); } };
+                const bDown = document.createElement('button'); bDown.textContent = '↓'; bDown.onclick = () => { if (idx < state.data.tasks.length - 1) { const tmp = state.data.tasks[idx + 1]; state.data.tasks[idx + 1] = state.data.tasks[idx]; state.data.tasks[idx] = tmp; renderTable(); saveSnapshot('auto'); } };
+                const bDel = document.createElement('button'); bDel.textContent = '🗑️'; bDel.onclick = () => { if (confirm('Supprimer cette tâche ?')) { state.data.tasks.splice(idx, 1); renderTable(); saveSnapshot('auto'); } };
+                tdActions.append(bUp, bDown, bDel);
+
+                tr.append(tdDone, tdId, tdTitle, tdDesc, tdPrio, tdDeps, tdTags, tdActions);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ====== NOUVEAU / AJOUT ======
+        function newFile() {
+            state.data = { tasks: [{ id: 'T001', title: 'Nouvelle tâche', description: 'Décris ici…', priority: 'medium', done: false, dependencies: [], tags: [] }] };
+            renderTable(); saveSnapshot('new');
+        }
+        function addTask() {
+            state.data.tasks.push({ id: uid(), title: '', description: '', priority: 'low', done: false, dependencies: [], tags: [] });
+            renderTable(); saveSnapshot('add');
+        }
+
+        // ====== IMPORT / EXPORT ======
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const rd = new FileReader();
+            rd.onload = ev => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    state.data = Array.isArray(parsed) ? { tasks: parsed } : (parsed.tasks ? parsed : { tasks: [] });
+                    renderTable(); saveSnapshot('open', file.name);
+                } catch (err) { alert('JSON invalide: ' + err.message); }
+            };
+            rd.readAsText(file);
+        });
+
+        document.getElementById('btnSave').onclick = () => download('tasks.json', JSON.stringify(state.data, null, 2), 'application/json');
+        document.getElementById('btnExportMD').onclick = () => download('tasks.md', toMD(state.data), 'text/markdown');
+        document.getElementById('btnNew').onclick = newFile;
+        document.getElementById('btnAdd').onclick = addTask;
+        document.getElementById('btnSort').onclick = () => { state.data.tasks.sort((a, b) => (a.id || '').localeCompare(b.id || '')); renderTable(); saveSnapshot('sort'); };
+
+        document.getElementById('btnCopyPrompt').onclick = () => {
+            const p = `Tu es un assistant qui crée et met à jour un fichier tasks.json.\nRéponds UNIQUEMENT en JSON strict conforme au schéma v1 :\n{\n  "tasks": [\n    {"id":"T001","title":"...","description":"...","priority":"high|medium|low","done":false,"dependencies":[],"tags":[]}\n  ]\n}\nRègles :\n- Conserve les IDs existants.\n- Ajoute des sous-tâches si demandé (IDs T###).\n- Pas de texte hors JSON.`;
+            navigator.clipboard.writeText(p).then(() => alert('Prompt copié dans le presse-papiers.'));
+        };
+
+        // ====== RÉCENTS (instantanés) ======
+        function loadRecents() {
+            const arr = JSON.parse(localStorage.getItem(LS_RECENTS_KEY) || '[]');
+            const ul = document.getElementById('recentList'); ul.innerHTML = '';
+            arr.forEach((it, idx) => {
+                const li = document.createElement('li');
+                const left = document.createElement('div');
+                left.innerHTML = `<div><strong>${it.name || 'tasks.json'}</strong></div><div class="muted">${new Date(it.ts).toLocaleString()} · ${it.source}</div>`;
+                const right = document.createElement('div');
+                const bLoad = document.createElement('button'); bLoad.textContent = 'Charger'; bLoad.onclick = () => { state.data = it.data; renderTable(); };
+                const bDel = document.createElement('button'); bDel.textContent = 'Suppr'; bDel.onclick = () => { arr.splice(idx, 1); localStorage.setItem(LS_RECENTS_KEY, JSON.stringify(arr)); loadRecents(); };
+                right.append(bLoad, bDel);
+                li.append(left, right); ul.appendChild(li);
+            });
+        }
+        function saveSnapshot(source = 'manual', name = 'tasks.json') {
+            const arr = JSON.parse(localStorage.getItem(LS_RECENTS_KEY) || '[]');
+            arr.unshift({ ts: Date.now(), source, name, data: state.data });
+            // dédupliquer par contenu + garder 10 derniers
+            const seen = new Set();
+            const out = [];
+            for (const x of arr) {
+                const k = JSON.stringify(x.data);
+                if (seen.has(k)) continue;
+                seen.add(k); out.push(x);
+                if (out.length >= 10) break;
+            }
+            localStorage.setItem(LS_RECENTS_KEY, JSON.stringify(out));
+            loadRecents();
+        }
+
+        // ====== CHAT IA ======
+        function addMsg(role, text) { const box = document.getElementById('chatBox'); const div = document.createElement('div'); div.className = 'msg ' + role; div.textContent = text; box.appendChild(div); box.scrollTop = box.scrollHeight; }
+
+        document.getElementById('btnSend').onclick = async () => {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const model = document.getElementById('model').value;
+            const sys = document.getElementById('systemPrompt').value;
+            const user = document.getElementById('userMsg').value.trim(); if (!user) return;
+            addMsg('user', user); document.getElementById('userMsg').value = '';
+
+            const messages = [{ role: 'system', content: sys }];
+            if (document.getElementById('btnInject').textContent.includes('✅')) { messages.push({ role: 'user', content: 'JSON actuel:\n' + JSON.stringify(state.data, null, 2) }); }
+            messages.push({ role: 'user', content: user });
+
+            try {
+                const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+                    body: JSON.stringify({ model, messages, temperature: 0 })
+                });
+                const data = await res.json();
+                const text = data?.choices?.[0]?.message?.content || '[Réponse vide]';
+                addMsg('ai', text);
+
+                const jsonText = extractJSON(text);
+                if (jsonText) {
+                    const parsed = JSON.parse(jsonText);
+                    state.data = Array.isArray(parsed) ? { tasks: parsed } : (parsed.tasks ? parsed : { tasks: [] });
+                    renderTable(); saveSnapshot('ai');
+                }
+            } catch (err) { addMsg('ai', 'Erreur: ' + err.message); }
+        };
+
+        document.getElementById('btnInject').onclick = (e) => {
+            const on = e.currentTarget.textContent.includes('✅');
+            e.currentTarget.textContent = on ? '💉 Inclure JSON actuel' : '✅ Inclure JSON actuel';
+        };
+
+        function extractJSON(txt) {
+            const fenced = txt.match(/```json\s*([\s\S]*?)\s*```/i);
+            if (fenced) return fenced[1];
+            const arrMatch = txt.match(/\[[\s\S]*\]$/m);
+            const objMatch = txt.match(/\{[\s\S]*\}$/m);
+            if (arrMatch) return arrMatch[0];
+            if (objMatch) return objMatch[0];
+            return null;
+        }
+
+        // ====== INIT ======
+        loadRecents();
+        newFile();
+    </script>
+</body>
+
+</html>
+
