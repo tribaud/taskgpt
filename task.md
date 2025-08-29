@@ -3,6 +3,7 @@
 ## Current State Analysis
 
 The application has been successfully refactored from a single HTML file to a modular Electron desktop application with the following features:
+
 - Task management with editable table UI
 - Local storage for recent snapshots
 - AI integration with OpenAI API (with secure key handling)
@@ -22,35 +23,53 @@ The application has been successfully refactored from a single HTML file to a mo
 ## Completed Improvements
 
 ### 1. Architecture Refactoring
+
 - ✅ Split into multiple files (HTML, CSS, JS modules)
 - ✅ Implement proper separation of concerns
 - ✅ Create modular components
 
 ### 2. Electron Application
+
 - ✅ Convert to Electron app for desktop deployment
 - ✅ Move API key handling to main process
 - ✅ Enable direct file system access
 - ✅ Package as distributable application
 
 ### 3. Build System and Tooling
+
 - ✅ Add package.json with dependencies
 - ✅ Implement build process with bundling
 - ✅ Add TypeScript support
 - ✅ Configure linting and formatting
 
 ### 4. Security Enhancements
+
 - ✅ Store API keys in main Electron process
 - ✅ Prevent exposure of keys to renderer process
 - ✅ Implement secure communication channels
 
 ### 5. Data Structure Standardization
+
 - ✅ Define strict JSON schema for tasks
 - ✅ Update AI system prompt to enforce schema
 - ✅ Add validation for imported/edited data
 
 ### 6. Code Quality Improvements
+
 - ✅ Convert to TypeScript for type safety
 - ✅ Implement proper error handling
+
+### 7. UI/UX
+
+- [ ] Utiliser un switch LightMode / Dark Mode et utiliser les couleurs css proche de github
+
+### 8. Intégration API LLM
+
+- [ ] Ajouter un bouton pour aller dans les settings et une page de settings pour gérer les connecteurs LLM et les ApiKeys
+- [ ] Intégrer la possibilité d'ajouter et de requiter l'api openrouter pour le chat
+
+### Backlog - DO NOT DO IT
+
 - ⬜ Add unit tests (pending)
 - ⬜ Improve UI/UX consistency (pending)
 

@@ -1,5 +1,7 @@
 // ====== ÉTAT ======
 const LS_RECENTS_KEY = 'task_editor_recent_snapshots_v1';
+const LS_THEME_KEY = 'task_editor_theme';
+const LS_SETTINGS_KEY = 'task_editor_settings';
 
 // Define types for our data structures
 interface Task {
@@ -12,6 +14,14 @@ interface Task {
     tags: string[];
 }
 
+interface Settings {
+    llmProvider: string;
+    openaiApiKey: string;
+    openrouterApiKey: string;
+    openrouterModel: string;
+    theme: string;
+}
+
 interface State {
     schema: string;
     data: { tasks: Task[] };
@@ -20,6 +30,14 @@ interface State {
 let state: State = {
     schema: 'v1',
     data: { tasks: [] },
+};
+
+let settings: Settings = {
+    llmProvider: 'openai',
+    openaiApiKey: '',
+    openrouterApiKey: '',
+    openrouterModel: 'openai/gpt-4o-mini',
+    theme: 'dark'
 };
 
 // Declare the electronAPI globally
@@ -245,56 +263,6 @@ function addMsg(role: string, text: string) {
     box.scrollTop = box.scrollHeight;
 }
 
-const btnSend = document.getElementById('btnSend');
-if (btnSend) {
-    btnSend.onclick = async () => {
-        const apiKeyElement = document.getElementById('apiKey') as HTMLInputElement | null;
-        const modelElement = document.getElementById('model') as HTMLSelectElement | null;
-        const sysElement = document.getElementById('systemPrompt') as HTMLTextAreaElement | null;
-        const userMsgElement = document.getElementById('userMsg') as HTMLTextAreaElement | null;
-
-        const apiKey = apiKeyElement?.value.trim() || '';
-        const model = modelElement?.value || '';
-        const sys = sysElement?.value || '';
-        const user = userMsgElement?.value.trim() || '';
-
-        if (!user) return;
-        addMsg('user', user);
-        if (userMsgElement) userMsgElement.value = '';
-
-        const messages = [{ role: 'system', content: sys }];
-
-        const btnInject = document.getElementById('btnInject');
-        if (btnInject && btnInject.textContent?.includes('✅')) {
-            messages.push({ role: 'user', content: 'JSON actuel:\n' + JSON.stringify(state.data, null, 2) });
-        }
-        messages.push({ role: 'user', content: user });
-
-        try {
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + apiKey
-                },
-                body: JSON.stringify({ model, messages, temperature: 0 })
-            });
-            const data = await res.json();
-            const text = data?.choices?.[0]?.message?.content || '[Réponse vide]';
-            addMsg('ai', text);
-
-            const jsonText = extractJSON(text);
-            if (jsonText) {
-                const parsed = JSON.parse(jsonText);
-                state.data = Array.isArray(parsed) ? { tasks: parsed } : (parsed.tasks ? parsed : { tasks: [] });
-                renderTable(); saveSnapshot('ai');
-            }
-        } catch (err: any) {
-            addMsg('ai', 'Erreur: ' + err.message);
-        }
-    };
-}
-
 const btnInject = document.getElementById('btnInject');
 if (btnInject) {
     btnInject.onclick = (e) => {
@@ -315,7 +283,210 @@ function extractJSON(txt: string): string | null {
     return null;
 }
 
+// ====== SETTINGS ======
+function loadSettings() {
+    try {
+        const savedSettings = localStorage.getItem(LS_SETTINGS_KEY);
+        if (savedSettings) {
+            settings = { ...settings, ...JSON.parse(savedSettings) };
+        }
+    } catch (err: any) {
+        console.error('Erreur lors du chargement des paramètres:', err);
+    }
+}
+
+function saveSettings() {
+    try {
+        localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify(settings));
+    } catch (err: any) {
+        console.error('Erreur lors de la sauvegarde des paramètres:', err);
+    }
+}
+
+function openSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        populateSettingsForm();
+    }
+}
+
+function closeSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function populateSettingsForm() {
+    const llmProvider = document.getElementById('llmProvider') as HTMLSelectElement;
+    const openaiApiKey = document.getElementById('openaiApiKey') as HTMLInputElement;
+    const openrouterApiKey = document.getElementById('openrouterApiKey') as HTMLInputElement;
+    const openrouterModel = document.getElementById('openrouterModel') as HTMLSelectElement;
+    const themeSelect = document.getElementById('themeSelect') as HTMLSelectElement;
+
+    if (llmProvider) llmProvider.value = settings.llmProvider;
+    if (openaiApiKey) openaiApiKey.value = settings.openaiApiKey;
+    if (openrouterApiKey) openrouterApiKey.value = settings.openrouterApiKey;
+    if (openrouterModel) openrouterModel.value = settings.openrouterModel;
+    if (themeSelect) themeSelect.value = settings.theme;
+}
+
+function saveSettingsFromForm() {
+    const llmProvider = document.getElementById('llmProvider') as HTMLSelectElement;
+    const openaiApiKey = document.getElementById('openaiApiKey') as HTMLInputElement;
+    const openrouterApiKey = document.getElementById('openrouterApiKey') as HTMLInputElement;
+    const openrouterModel = document.getElementById('openrouterModel') as HTMLSelectElement;
+    const themeSelect = document.getElementById('themeSelect') as HTMLSelectElement;
+
+    if (llmProvider) settings.llmProvider = llmProvider.value;
+    if (openaiApiKey) settings.openaiApiKey = openaiApiKey.value;
+    if (openrouterApiKey) settings.openrouterApiKey = openrouterApiKey.value;
+    if (openrouterModel) settings.openrouterModel = openrouterModel.value;
+    if (themeSelect) settings.theme = themeSelect.value;
+
+    saveSettings();
+    setTheme(settings.theme);
+    closeSettings();
+}
+
+// ====== THEME TOGGLE ======
+function setTheme(theme: string) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(LS_THEME_KEY, theme);
+
+    // Update the theme toggle button text
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.textContent = theme === 'light' ? '☀️' : '🌙';
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+}
+
+// ====== CHAT IA AMÉLIORÉ ======
+async function sendToLLM(messages: any[]) {
+    if (settings.llmProvider === 'openai') {
+        // OpenAI API
+        const apiKey = settings.openaiApiKey || (document.getElementById('apiKey') as HTMLInputElement)?.value.trim() || '';
+        const model = (document.getElementById('model') as HTMLSelectElement)?.value || 'gpt-4o-mini';
+
+        if (!apiKey) {
+            throw new Error('Clé API OpenAI manquante');
+        }
+
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({ model, messages, temperature: 0 })
+        });
+
+        return res.json();
+    } else {
+        // OpenRouter API
+        const apiKey = settings.openrouterApiKey;
+        const model = settings.openrouterModel;
+
+        if (!apiKey) {
+            throw new Error('Clé API OpenRouter manquante');
+        }
+
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey,
+                'HTTP-Referer': window.location.href,
+                'X-Title': 'TaskGPT'
+            },
+            body: JSON.stringify({ model, messages, temperature: 0 })
+        });
+
+        return res.json();
+    }
+}
+
 // ====== INIT ======
+// Initialize settings
+loadSettings();
+
+// Initialize theme
+const savedTheme = localStorage.getItem(LS_THEME_KEY) || settings.theme || 'dark';
+setTheme(savedTheme);
+
+// Add event listeners for settings modal
+const btnSettings = document.getElementById('btnSettings');
+if (btnSettings) {
+    btnSettings.addEventListener('click', openSettings);
+}
+
+const closeSettingsBtn = document.getElementById('closeSettings');
+if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener('click', closeSettings);
+}
+
+const saveSettingsBtn = document.getElementById('saveSettings');
+if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', saveSettingsFromForm);
+}
+
+const cancelSettingsBtn = document.getElementById('cancelSettings');
+if (cancelSettingsBtn) {
+    cancelSettingsBtn.addEventListener('click', closeSettings);
+}
+
+// Add event listener for theme toggle button
+const themeToggle = document.getElementById('themeToggle');
+if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+}
+
+// Update the btnSend click handler to use the new sendToLLM function
+const btnSend = document.getElementById('btnSend');
+if (btnSend) {
+    btnSend.onclick = async () => {
+        const sysElement = document.getElementById('systemPrompt') as HTMLTextAreaElement | null;
+        const userMsgElement = document.getElementById('userMsg') as HTMLTextAreaElement | null;
+
+        const sys = sysElement?.value || '';
+        const user = userMsgElement?.value.trim() || '';
+
+        if (!user) return;
+        addMsg('user', user);
+        if (userMsgElement) userMsgElement.value = '';
+
+        const messages = [{ role: 'system', content: sys }];
+
+        const btnInject = document.getElementById('btnInject');
+        if (btnInject && btnInject.textContent?.includes('✅')) {
+            messages.push({ role: 'user', content: 'JSON actuel:\n' + JSON.stringify(state.data, null, 2) });
+        }
+        messages.push({ role: 'user', content: user });
+
+        try {
+            const data = await sendToLLM(messages);
+            const text = data?.choices?.[0]?.message?.content || '[Réponse vide]';
+            addMsg('ai', text);
+
+            const jsonText = extractJSON(text);
+            if (jsonText) {
+                const parsed = JSON.parse(jsonText);
+                state.data = Array.isArray(parsed) ? { tasks: parsed } : (parsed.tasks ? parsed : { tasks: [] });
+                renderTable(); saveSnapshot('ai');
+            }
+        } catch (err: any) {
+            addMsg('ai', 'Erreur: ' + err.message);
+        }
+    };
+}
+
 loadRecents();
 loadApiKey();
 newFile();

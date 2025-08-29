@@ -46,7 +46,8 @@
       "category": "public.app-category.productivity"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "category": "Utility"
     }
   }
 }
