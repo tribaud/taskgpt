@@ -322,13 +322,28 @@ function populateSettingsForm() {
     const llmProvider = document.getElementById('llmProvider') as HTMLSelectElement;
     const openaiApiKey = document.getElementById('openaiApiKey') as HTMLInputElement;
     const openrouterApiKey = document.getElementById('openrouterApiKey') as HTMLInputElement;
-    const openrouterModel = document.getElementById('openrouterModel') as HTMLSelectElement;
+    const openrouterModelSelect = document.getElementById('openrouterModelSelect') as HTMLSelectElement;
+    const openrouterModelCustom = document.getElementById('openrouterModelCustom') as HTMLInputElement;
+    const openrouterModelHidden = document.getElementById('openrouterModel') as HTMLInputElement;
     const themeSelect = document.getElementById('themeSelect') as HTMLSelectElement;
 
     if (llmProvider) llmProvider.value = settings.llmProvider;
     if (openaiApiKey) openaiApiKey.value = settings.openaiApiKey;
     if (openrouterApiKey) openrouterApiKey.value = settings.openrouterApiKey;
-    if (openrouterModel) openrouterModel.value = settings.openrouterModel;
+    if (openrouterModelHidden) openrouterModelHidden.value = settings.openrouterModel;
+
+    // Set the select and custom input based on whether the model is in the predefined list
+    if (openrouterModelSelect && openrouterModelCustom) {
+        const predefinedModels = Array.from(openrouterModelSelect.options).map(option => option.value);
+        if (predefinedModels.includes(settings.openrouterModel)) {
+            openrouterModelSelect.value = settings.openrouterModel;
+            openrouterModelCustom.value = '';
+        } else {
+            openrouterModelSelect.value = '';
+            openrouterModelCustom.value = settings.openrouterModel;
+        }
+    }
+
     if (themeSelect) themeSelect.value = settings.theme;
 }
 
@@ -336,13 +351,29 @@ function saveSettingsFromForm() {
     const llmProvider = document.getElementById('llmProvider') as HTMLSelectElement;
     const openaiApiKey = document.getElementById('openaiApiKey') as HTMLInputElement;
     const openrouterApiKey = document.getElementById('openrouterApiKey') as HTMLInputElement;
-    const openrouterModel = document.getElementById('openrouterModel') as HTMLSelectElement;
+    const openrouterModelSelect = document.getElementById('openrouterModelSelect') as HTMLSelectElement;
+    const openrouterModelCustom = document.getElementById('openrouterModelCustom') as HTMLInputElement;
+    const openrouterModelHidden = document.getElementById('openrouterModel') as HTMLInputElement;
     const themeSelect = document.getElementById('themeSelect') as HTMLSelectElement;
 
     if (llmProvider) settings.llmProvider = llmProvider.value;
     if (openaiApiKey) settings.openaiApiKey = openaiApiKey.value;
     if (openrouterApiKey) settings.openrouterApiKey = openrouterApiKey.value;
-    if (openrouterModel) settings.openrouterModel = openrouterModel.value;
+
+    // Handle OpenRouter model selection (either from dropdown or custom input)
+    if (openrouterModelSelect && openrouterModelCustom && openrouterModelHidden) {
+        const selectedModel = openrouterModelSelect.value;
+        const customModel = openrouterModelCustom.value.trim();
+
+        if (customModel) {
+            settings.openrouterModel = customModel;
+            openrouterModelHidden.value = customModel;
+        } else if (selectedModel) {
+            settings.openrouterModel = selectedModel;
+            openrouterModelHidden.value = selectedModel;
+        }
+    }
+
     if (themeSelect) settings.theme = themeSelect.value;
 
     saveSettings();
@@ -447,6 +478,31 @@ const themeToggle = document.getElementById('themeToggle');
 if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
 }
+
+// Add event listeners for OpenRouter model selection
+document.addEventListener('DOMContentLoaded', () => {
+    const openrouterModelSelect = document.getElementById('openrouterModelSelect') as HTMLSelectElement;
+    const openrouterModelCustom = document.getElementById('openrouterModelCustom') as HTMLInputElement;
+    const openrouterModelHidden = document.getElementById('openrouterModel') as HTMLInputElement;
+
+    if (openrouterModelSelect && openrouterModelCustom && openrouterModelHidden) {
+        // When user selects a model from the dropdown, clear the custom input
+        openrouterModelSelect.addEventListener('change', () => {
+            if (openrouterModelSelect.value) {
+                openrouterModelCustom.value = '';
+                openrouterModelHidden.value = openrouterModelSelect.value;
+            }
+        });
+
+        // When user types in the custom input, clear the dropdown selection
+        openrouterModelCustom.addEventListener('input', () => {
+            if (openrouterModelCustom.value.trim()) {
+                openrouterModelSelect.value = '';
+                openrouterModelHidden.value = openrouterModelCustom.value.trim();
+            }
+        });
+    }
+});
 
 // Update the btnSend click handler to use the new sendToLLM function
 const btnSend = document.getElementById('btnSend');

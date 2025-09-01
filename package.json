@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Task Manager with AI Integration",
   "main": "dist/main.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tribaud/taskgpt.git"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
@@ -48,6 +52,7 @@
     "linux": {
       "target": "AppImage",
       "category": "Utility"
-    }
+    },
+    "publish": null
   }
 }
