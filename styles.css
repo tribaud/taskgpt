@@ -98,7 +98,7 @@ input[type="text"],
 select,
 textarea {
     border: 1px solid var(--line);
-    background: #0e1733;
+    background: var(--input-bg);
     color: var(--muted);
     padding: 8px 10px;
     border-radius: 10px;
@@ -109,8 +109,8 @@ button {
 }
 
 button.primary {
-    background: #10235a;
-    border-color: #27428f;
+    background: var(--input-bg);
+    border-color: var(--line);
 }
 
 button:hover {
@@ -139,7 +139,7 @@ button:hover {
 .card h2 {
     margin: 0 0 10px;
     font-size: 16px;
-    color: #cfe0ff;
+    color: var(-text);
 }
 
 table {
@@ -150,7 +150,7 @@ table {
 }
 
 thead th {
-    background: #0f1a3a;
+    background: var(--panel);
     position: sticky;
     top: 0;
     z-index: 1;
@@ -165,7 +165,7 @@ td {
 }
 
 tbody tr:hover {
-    background: #0e1733;
+    background: var(--input-bg);
 }
 
 td[contenteditable] {
@@ -190,8 +190,8 @@ td[contenteditable] {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    background: #0f1b3f;
-    border: 1px solid #22346f;
+    background: var(--panel);
+    border: 1px solid var(--line);
     padding: 8px 10px;
     border-radius: 10px;
 }
@@ -199,8 +199,8 @@ td[contenteditable] {
 #chatBox {
     height: 260px;
     overflow-y: auto;
-    background: #0f1b3f;
-    border: 1px solid #22346f;
+    background: var(--panel);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 10px;
 }
@@ -210,15 +210,15 @@ td[contenteditable] {
 }
 
 .msg.user {
-    color: #b0c9ff;
+    color: var(--user-msg);
 }
 
 .msg.ai {
-    color: #a7ffcf;
+    color: var(--ai-msg);
 }
 
 .muted {
-    color: #a5b4d6;
+    color:var(--muted-text);
     opacity: .8;
     font-size: 12px;
 }

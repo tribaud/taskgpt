@@ -1,0 +1,175 @@
+{
+  "tasks": [
+    {
+      "id": "T001",
+      "title": "Architecture Refactoring",
+      "description": "Split into multiple files (HTML, CSS, JS modules), implement proper separation of concerns, create modular components.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T002",
+      "title": "Electron Application",
+      "description": "Convert to Electron app for desktop deployment, move API key handling to main process, enable direct file system access, package as distributable application.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T003",
+      "title": "Build System and Tooling",
+      "description": "Add package.json with dependencies, implement build process with bundling, add TypeScript support, configure linting and formatting.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T004",
+      "title": "Security Enhancements",
+      "description": "Store API keys in main Electron process, prevent exposure of keys to renderer process, implement secure communication channels.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T005",
+      "title": "Data Structure Standardization",
+      "description": "Define strict JSON schema for tasks, update AI system prompt to enforce schema, add validation for imported/edited data.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T006",
+      "title": "Code Quality Improvements",
+      "description": "Convert to TypeScript for type safety, implement proper error handling.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T007",
+      "title": "UI/UX",
+      "description": "Utiliser un switch LightMode / Dark Mode et utiliser les couleurs css proche de github.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T008",
+      "title": "Intégration API LLM",
+      "description": "Ajouter un bouton pour aller dans les settings et une page de settings pour gérer les connecteurs LLM et les ApiKeys, intégrer la possibilité d'ajouter et de requiter l'api openrouter pour le chat.",
+      "priority": "medium",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T009",
+      "title": "Add Unit Tests",
+      "description": "Implement a testing framework and add unit tests for all modules.",
+      "priority": "low",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T010",
+      "title": "Improve UI/UX Consistency",
+      "description": "Refine the user interface for better consistency and user experience.",
+      "priority": "low",
+      "done": true,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T011",
+      "title": "Edit Tags",
+      "description": "Edit the tags in the task list with a text field that allows entering a new tag and also provides a dropdown list of existing tags that match the entered text.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T012",
+      "title": "Add Animation for AI Request",
+      "description": "Implement an animation to indicate when a request to the AI is in progress.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T013",
+      "title": "Add Keyboard Shortcut for AI Prompt",
+      "description": "Add a keyboard shortcut Ctrl+Return to send the prompt to the AI and display 'Envoyer à l'IA (Ctrl+Return)' on the existing button.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T014",
+      "title": "Rename Open Button",
+      "description": "Rename the button 'ouvrir' to 'ouvrir fichier'.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T015",
+      "title": "Add Recent Files Button",
+      "description": "Add a button 'ouvrir récent' that displays a list of recently opened files, persist this list between restarts, and open the last file on application start. Afficher le chemin du fichier en cours d'édition en dessous de 'Editeur de tâches' mais en plus petit.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T016",
+      "title": "Add Save As Button",
+      "description": "Rename the button 'sauvegarder Json' to 'sauvegarder' and save the file in the correct location without displaying a file selector.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T017",
+      "title": "Add Save As Dialog",
+      "description": "Implement a 'sauvegarder sous' feature that opens a file selector dialog.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T018",
+      "title": "Fix Task Table Alignment",
+      "description": "Correct the task table issue where the separator line for the 'Done' column is below the row instead of above, or adjust the row height for proper alignment.",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    },
+    {
+      "id": "T019",
+      "title": "Add Filtering Functionality",
+      "description": "Implement a feature to filter the task table by entering text and filtering rows that contain this text and/or filter by tags displayed as selectable boxes (multiple selections possible, and if none selected, all tasks are displayed).",
+      "priority": "medium",
+      "done": false,
+      "dependencies": [],
+      "tags": []
+    }
+  ]
+}
