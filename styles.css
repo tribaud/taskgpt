@@ -1,19 +1,19 @@
 :root {
-    --bg: #0b1020;
-    --panel: #101937;
-    --muted: #dbe3ff;
-    --line: #2a345d;
+    --bg: #22272e;
+    --panel: #2d333b;
+    --muted: #bfc8d6;
+    --line: #444c56;
     --accent: #7aa2ff;
-    --text: #dbe3ff;
-    --header-bg: linear-gradient(180deg, #0c1430, #0b1020);
-    --card-bg: #101937;
-    --input-bg: #0e1733;
-    --border-color: #2a345d;
-    --button-bg: #10235a;
-    --button-border: #27428f;
-    --chat-bg: #0f1b3f;
-    --chat-border: #22346f;
-    --user-msg: #b0c9ff;
+    --text: #f5f6fa;
+    --header-bg: #22272e;
+    --card-bg: #2d333b;
+    --input-bg: #23272e;
+    --border-color: #444c56;
+    --button-bg: #373e47;
+    --button-border: #444c56;
+    --chat-bg: #2d333b;
+    --chat-border: #444c56;
+    --user-msg: #bfc8d6;
     --ai-msg: #a7ffcf;
     --muted-text: #a5b4d6;
 }
@@ -106,6 +106,21 @@ textarea {
 
 button {
     cursor: pointer;
+}
+
+.app-btn {
+    background: var(--button-bg);
+    color: var(--text);
+    border: 1px solid var(--button-border);
+    border-radius: 5px;
+    padding: 6px 16px;
+    font-size: 1em;
+    transition: background 0.2s;
+    margin: 0;
+}
+
+.app-btn:hover {
+    filter: brightness(1.1);
 }
 
 button.primary {

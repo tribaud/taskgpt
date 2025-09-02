@@ -1,18 +1,81 @@
-import React from "react";
+import React, { useState } from "react";
 import ApiKeyInput from "./ApiKeyInput";
 import ModelSelector from "./ModelSelector";
 import SystemPromptEditor from "./SystemPromptEditor";
 import ChatBox from "./ChatBox";
 import UserMessageInput from "./UserMessageInput";
+import { useSettings } from "../../context/SettingsContext";
+import { sendToOpenAI } from "../../services/openaiService";
 
-const ChatPanel: React.FC = () => (
-  <div>
-    <ApiKeyInput />
-    <ModelSelector />
-    <SystemPromptEditor />
-    <ChatBox />
-    <UserMessageInput />
-  </div>
-);
+type Message = { role: "user" | "ai"; content: string };
+
+const ChatPanel: React.FC = () => {
+  const { settings } = useSettings();
+  const [userMsg, setUserMsg] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!userMsg.trim() || !settings.apiKey) return;
+    setMessages(msgs => [...msgs, { role: "user", content: userMsg }]);
+    setLoading(true);
+    try {
+      const aiResponse = await sendToOpenAI({
+        apiKey: settings.apiKey,
+        model: settings.model,
+        prompt: userMsg,
+        systemPrompt
+      });
+      setMessages(msgs => [...msgs, { role: "ai", content: aiResponse }]);
+    } catch (err: any) {
+      setMessages(msgs => [...msgs, { role: "ai", content: "Erreur: " + err.message }]);
+    }
+    setLoading(false);
+    setUserMsg("");
+  };
+
+  return (
+    <div>
+      <ApiKeyInput />
+      <ModelSelector />
+      <SystemPromptEditor />
+      <ChatBox>
+        {messages.length === 0 ? (
+          <div className="muted">(Aucune conversation)</div>
+        ) : (
+          messages.map((msg, i) => (
+            <div key={i} className={"msg " + msg.role}>
+              {msg.content}
+            </div>
+          ))
+        )}
+        {loading && <div className="muted">Envoi en cours...</div>}
+      </ChatBox>
+      <div style={{ marginTop: 8 }}>
+        <textarea
+          id="userMsg"
+          rows={3}
+          placeholder="Ex: Décompose T002 en 3 sous-tâches dépendantes…"
+          style={{ width: "100%" }}
+          value={userMsg}
+          onChange={e => setUserMsg(e.target.value)}
+          disabled={loading}
+        />
+        <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
+          <button id="btnSend" onClick={handleSend} disabled={loading || !userMsg.trim() || !settings.apiKey}>
+            Envoyer à l’IA
+          </button>
+          <button id="btnInject" disabled>
+            ✅ Inclure JSON actuel
+          </button>
+        </div>
+        <p className="muted" style={{ fontSize: "0.9em", color: "#888" }}>
+          ⚠️ L'appel direct au navigateur expose votre clé API au code client. Pour une prod sécurisée, passez par un proxy serveur ou OpenRouter avec clés côté serveur.
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default ChatPanel;
