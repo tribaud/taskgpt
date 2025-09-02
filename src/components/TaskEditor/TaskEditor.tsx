@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Toolbar from "./Toolbar";
 import TaskTable from "./TaskTable";
 import SettingsModal from "../Settings/SettingsModal";
+import ChatPanel from "../Chat/ChatPanel";
 
 export type Task = {
   id: string;
@@ -134,6 +135,7 @@ const TaskEditor: React.FC = () => {
         onEditTask={editTask}
         onDeleteTask={deleteTask}
       />
+      <ChatPanel onImportTasks={(imported: Task[]) => setTasks(imported)} />
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   );

@@ -9,10 +9,15 @@ import { sendToOpenAI } from "../../services/openaiService";
 
 type Message = { role: "user" | "ai"; content: string };
 
-const ChatPanel: React.FC = () => {
+import { Task } from "../TaskEditor/TaskEditor";
+
+type ChatPanelProps = {
+  onImportTasks?: (tasks: Task[]) => void;
+};
+
+const ChatPanel: React.FC<ChatPanelProps> = ({ onImportTasks }) => {
   const { settings } = useSettings();
   const [userMsg, setUserMsg] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -25,9 +30,18 @@ const ChatPanel: React.FC = () => {
         apiKey: settings.apiKey,
         model: settings.model,
         prompt: userMsg,
-        systemPrompt
+        systemPrompt: settings.systemPrompt ?? ""
       });
       setMessages(msgs => [...msgs, { role: "ai", content: aiResponse }]);
+      // Tenter d'extraire du JSON et d'importer les tâches
+      try {
+        const json = JSON.parse(aiResponse);
+        if (Array.isArray(json)) {
+          onImportTasks?.(json);
+        } else if (json.tasks && Array.isArray(json.tasks)) {
+          onImportTasks?.(json.tasks);
+        }
+      } catch {}
     } catch (err: any) {
       setMessages(msgs => [...msgs, { role: "ai", content: "Erreur: " + err.message }]);
     }
