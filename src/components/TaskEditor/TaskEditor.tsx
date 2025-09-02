@@ -47,12 +47,24 @@ const TaskEditor: React.FC = () => {
     setTasks([...tasks].sort((a, b) => (a.id || "").localeCompare(b.id || "")));
   };
 
-  // TODO: handlers pour édition, suppression, etc.
+  const editTask = (index: number, updated: Partial<Task>) => {
+    setTasks(tasks =>
+      tasks.map((t, i) => (i === index ? { ...t, ...updated } : t))
+    );
+  };
+
+  const deleteTask = (index: number) => {
+    setTasks(tasks => tasks.filter((_, i) => i !== index));
+  };
 
   return (
     <div>
       <Toolbar onAdd={addTask} onSort={sortTasks} />
-      <TaskTable tasks={tasks} />
+      <TaskTable
+        tasks={tasks}
+        onEditTask={editTask}
+        onDeleteTask={deleteTask}
+      />
     </div>
   );
 };

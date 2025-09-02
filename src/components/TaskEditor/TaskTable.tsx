@@ -4,9 +4,11 @@ import { Task } from "./TaskEditor";
 
 type TaskTableProps = {
   tasks: Task[];
+  onEditTask: (index: number, updated: Partial<Task>) => void;
+  onDeleteTask: (index: number) => void;
 };
 
-const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
+const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEditTask, onDeleteTask }) => {
   return (
     <div style={{ overflow: "auto", maxHeight: "60vh" }}>
       <table>
@@ -24,7 +26,13 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
         </thead>
         <tbody>
           {tasks.map((task, idx) => (
-            <TaskRow key={task.id} task={task} index={idx} />
+            <TaskRow
+              key={task.id}
+              task={task}
+              index={idx}
+              onEdit={onEditTask}
+              onDelete={onDeleteTask}
+            />
           ))}
         </tbody>
       </table>
