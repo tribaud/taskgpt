@@ -10,7 +10,6 @@ export type Task = {
   description: string;
   priority: string;
   done: boolean;
-  dependencies: string[];
   tags: string[];
 };
 
@@ -21,7 +20,6 @@ const initialTasks: Task[] = [
     description: "Description de la tâche",
     priority: "medium",
     done: false,
-    dependencies: [],
     tags: ["demo", "test"]
   }
 ];
@@ -32,18 +30,20 @@ function toMD(tasks: Task[]): string {
   for (const t of tasks) {
     const check = t.done ? 'x' : ' ';
     const prio = t.priority || 'n/a';
-    const deps = (t.dependencies || []).join(', ');
     const tags = (t.tags || []).join(', ');
     lines.push(`- [${check}] **${t.id}** ${t.title || ''} (prio: ${prio})`);
     if (t.description) lines.push(`  - ${t.description}`);
-    if (deps) lines.push(`  - deps: ${deps}`);
     if (tags) lines.push(`  - tags: ${tags}`);
   }
   return lines.join('\n');
 }
 
-const TaskEditor: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+type TaskEditorProps = {
+  tasks: Task[];
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+};
+
+const TaskEditor: React.FC<TaskEditorProps> = ({ tasks, setTasks }) => {
   const [showSettings, setShowSettings] = useState(false);
 
   const addTask = () => {
@@ -56,7 +56,6 @@ const TaskEditor: React.FC = () => {
         description: "",
         priority: "low",
         done: false,
-        dependencies: [],
         tags: []
       }
     ]);
@@ -90,6 +89,9 @@ const TaskEditor: React.FC = () => {
           const data = JSON.parse(evt.target?.result as string);
           if (Array.isArray(data)) setTasks(data);
           else if (data.tasks) setTasks(data.tasks);
+          // Stocker le nom et le chemin du fichier dans localStorage
+          localStorage.setItem("taskgpt_lastfile_name", file.name);
+          localStorage.setItem("taskgpt_lastfile_path", file.webkitRelativePath || file.name);
         } catch (err) {
           alert("Erreur lors de l'ouverture du fichier : " + err);
         }
@@ -122,6 +124,17 @@ const TaskEditor: React.FC = () => {
 
   return (
     <>
+      <div style={{ marginBottom: 12 }}>
+        <label htmlFor="schemaSelect" style={{ fontWeight: "bold", marginRight: 8 }}>Modèle JSON :</label>
+        <select
+          id="schemaSelect"
+          value="v1"
+          style={{ minWidth: 120 }}
+          disabled
+        >
+          <option value="v1">v1 (id, title, description, priority, done, tags)</option>
+        </select>
+      </div>
       <Toolbar
         onAdd={addTask}
         onSort={sortTasks}
@@ -134,8 +147,9 @@ const TaskEditor: React.FC = () => {
         tasks={tasks}
         onEditTask={editTask}
         onDeleteTask={deleteTask}
+        allTags={Array.from(new Set(tasks.flatMap(t => t.tags)))}
       />
-      <ChatPanel onImportTasks={(imported: Task[]) => setTasks(imported)} />
+      {/* <ChatPanel onImportTasks={(imported: Task[]) => setTasks(imported)} /> */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   );

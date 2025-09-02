@@ -13,35 +13,50 @@ import { Task } from "../TaskEditor/TaskEditor";
 
 type ChatPanelProps = {
   onImportTasks?: (tasks: Task[]) => void;
+  tasks?: Task[];
 };
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ onImportTasks }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ onImportTasks, tasks }) => {
   const { settings } = useSettings();
   const [userMsg, setUserMsg] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [injectJson, setInjectJson] = useState(true);
 
   const handleSend = async () => {
     if (!userMsg.trim() || !settings.apiKey) return;
     setMessages(msgs => [...msgs, { role: "user", content: userMsg }]);
     setLoading(true);
     try {
+      let prompt = userMsg;
+      if (injectJson && tasks) {
+        prompt = `JSON actuel:\n${JSON.stringify(tasks, null, 2)}\n\n${userMsg}`;
+      }
       const aiResponse = await sendToOpenAI({
         apiKey: settings.apiKey,
         model: settings.model,
-        prompt: userMsg,
+        prompt,
         systemPrompt: settings.systemPrompt ?? ""
       });
       setMessages(msgs => [...msgs, { role: "ai", content: aiResponse }]);
       // Tenter d'extraire du JSON et d'importer les tâches
       try {
-        const json = JSON.parse(aiResponse);
+        // Extraire le bloc ```json ... ``` si présent
+        let jsonText = aiResponse;
+        const match = aiResponse.match(/```json\s*([\s\S]*?)```/i);
+        if (match) {
+          jsonText = match[1];
+        }
+        const json = JSON.parse(jsonText);
+        console.log("JSON importé par l'IA :", json);
         if (Array.isArray(json)) {
           onImportTasks?.(json);
         } else if (json.tasks && Array.isArray(json.tasks)) {
           onImportTasks?.(json.tasks);
         }
-      } catch {}
+      } catch (err) {
+        console.log("Erreur de parsing JSON IA :", err);
+      }
     } catch (err: any) {
       setMessages(msgs => [...msgs, { role: "ai", content: "Erreur: " + err.message }]);
     }
@@ -80,8 +95,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onImportTasks }) => {
           <button id="btnSend" onClick={handleSend} disabled={loading || !userMsg.trim() || !settings.apiKey}>
             Envoyer à l’IA
           </button>
-          <button id="btnInject" disabled>
-            ✅ Inclure JSON actuel
+          <button
+            id="btnInject"
+            type="button"
+            className={`app-btn${injectJson ? " primary" : ""}`}
+            onClick={() => setInjectJson(v => !v)}
+            style={{ background: injectJson ? "#7aa2ff" : undefined }}
+          >
+            {injectJson ? "✅ Inclure JSON actuel" : "Inclure JSON actuel"}
           </button>
         </div>
         <p className="muted" style={{ fontSize: "0.9em", color: "#888" }}>

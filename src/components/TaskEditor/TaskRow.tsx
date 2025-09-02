@@ -7,9 +7,10 @@ type TaskRowProps = {
   index: number;
   onEdit: (index: number, updated: Partial<Task>) => void;
   onDelete: (index: number) => void;
+  allTags: string[];
 };
 
-const TaskRow: React.FC<TaskRowProps> = ({ task, index, onEdit, onDelete }) => {
+const TaskRow: React.FC<TaskRowProps> = ({ task, index, onEdit, onDelete, allTags }) => {
   return (
     <tr>
       <td>
@@ -28,35 +29,40 @@ const TaskRow: React.FC<TaskRowProps> = ({ task, index, onEdit, onDelete }) => {
         />
       </td>
       <td>
-        <input
-          type="text"
+        <textarea
           value={task.description}
           onChange={e => onEdit(index, { description: e.target.value })}
+          style={{
+            width: "100%",
+            minWidth: 180,
+            maxWidth: 600,
+            minHeight: 32,
+            resize: "vertical",
+            fontFamily: "inherit",
+            fontSize: "inherit"
+          }}
         />
       </td>
       <td>
-        <input
-          type="text"
+        <select
           value={task.priority}
           onChange={e => onEdit(index, { priority: e.target.value })}
-        />
+          style={{ width: 90 }}
+        >
+          <option value="low">low</option>
+          <option value="medium">medium</option>
+          <option value="high">high</option>
+          <option value="blocked">blocked</option>
+          <option value="cancelled">cancelled</option>
+        </select>
       </td>
+      {/* dependencies supprimé */}
       <td>
-        <input
-          type="text"
-          value={task.dependencies.join(", ")}
-          onChange={e =>
-            onEdit(index, {
-              dependencies: e.target.value
-                .split(",")
-                .map(s => s.trim())
-                .filter(Boolean)
-            })
-          }
+        <TagsEditor
+          tags={task.tags}
+          onChange={tags => onEdit(index, { tags })}
+          allTags={allTags}
         />
-      </td>
-      <td>
-        <TagsEditor tags={task.tags} />
       </td>
       <td>
         <button onClick={() => onEdit(index, { /* TODO: move up */ })}>↑</button>

@@ -1,5 +1,5 @@
-import React, { useEffect, createContext } from "react";
-import TaskEditor from "./TaskEditor/TaskEditor";
+import React, { useState, useEffect, createContext } from "react";
+import TaskEditor, { Task } from "./TaskEditor/TaskEditor";
 import ChatPanel from "./Chat/ChatPanel";
 import { SettingsProvider, useSettings } from "../context/SettingsContext";
 
@@ -17,9 +17,31 @@ const THEME_KEY = "taskgpt_theme";
 
 export const ThemeContext = createContext<"light" | "dark">("dark");
 
+
+const initialTasks: Task[] = [
+  {
+    id: "T001",
+    title: "Exemple",
+    description: "Description de la tâche",
+    priority: "medium",
+    done: false,
+    tags: ["demo", "test"]
+  }
+];
+
+const TASKS_KEY = "taskgpt_tasks";
+
 const AppContent: React.FC = () => {
   const { settings, setSettings } = useSettings();
   const theme = settings.theme ?? "dark";
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    try {
+      const raw = localStorage.getItem(TASKS_KEY);
+      return raw ? JSON.parse(raw) : initialTasks;
+    } catch {
+      return initialTasks;
+    }
+  });
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
@@ -27,6 +49,11 @@ const AppContent: React.FC = () => {
     document.body.style.background = theme === "dark" ? GRAY_DARK_BG : GRAY_LIGHT_BG;
     document.body.style.color = theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT;
   }, [theme]);
+
+  // Sauvegarder tasks dans localStorage à chaque modification
+  useEffect(() => {
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  }, [tasks]);
 
   const toggleTheme = () => setSettings({ theme: theme === "light" ? "dark" : "light" });
 
@@ -49,19 +76,28 @@ const AppContent: React.FC = () => {
             justifyContent: "space-between",
             padding: "16px 24px 0 24px",
             background: theme === "dark" ? GRAY_DARK_BG : GRAY_LIGHT_BG,
-            color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
+            color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT,
+            flexDirection: "column"
           }}
         >
-          <h1 style={{ margin: 0, fontSize: "2rem" }}>Éditeur de tâches (tasks.json) + Chat IA</h1>
-          <button
-            id="themeToggle"
-            className="theme-toggle"
-            title="Changer le thème"
-            style={{ fontSize: 24, marginLeft: 16, background: "none", border: "none", color: "inherit", cursor: "pointer" }}
-            onClick={toggleTheme}
-          >
-            {theme === "light" ? "☀️" : "🌙"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", width: "100%", justifyContent: "space-between" }}>
+            <h1 style={{ margin: 0, fontSize: "2rem" }}>Éditeur de tâches (tasks.json) + Chat IA</h1>
+            <button
+              id="themeToggle"
+              className="theme-toggle"
+              title="Changer le thème"
+              style={{ fontSize: 24, marginLeft: 16, background: "none", border: "none", color: "inherit", cursor: "pointer" }}
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? "☀️" : "🌙"}
+            </button>
+          </div>
+          <div style={{ width: "100%", textAlign: "left", fontSize: "0.95em", color: "var(--muted-text)", marginTop: 2, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {localStorage.getItem("taskgpt_lastfile_name") || "tasks.json"}
+            {localStorage.getItem("taskgpt_lastfile_path") && localStorage.getItem("taskgpt_lastfile_path") !== localStorage.getItem("taskgpt_lastfile_name")
+              ? " — " + localStorage.getItem("taskgpt_lastfile_path")
+              : " (chemin non disponible en web)"}
+          </div>
         </header>
         <div style={{ display: "flex", flex: 1 }}>
           <div
@@ -73,7 +109,7 @@ const AppContent: React.FC = () => {
               color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
             }}
           >
-            <TaskEditor />
+            <TaskEditor tasks={tasks} setTasks={setTasks} />
           </div>
           <div
             style={{
@@ -84,7 +120,7 @@ const AppContent: React.FC = () => {
               minHeight: "100vh"
             }}
           >
-            <ChatPanel />
+            <ChatPanel onImportTasks={setTasks} tasks={tasks} />
           </div>
         </div>
       </div>

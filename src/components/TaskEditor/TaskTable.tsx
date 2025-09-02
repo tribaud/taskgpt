@@ -6,9 +6,10 @@ type TaskTableProps = {
   tasks: Task[];
   onEditTask: (index: number, updated: Partial<Task>) => void;
   onDeleteTask: (index: number) => void;
+  allTags: string[];
 };
 
-const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEditTask, onDeleteTask }) => {
+const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEditTask, onDeleteTask, allTags }) => {
   return (
     <div style={{ overflow: "auto", maxHeight: "60vh" }}>
       <table>
@@ -17,10 +18,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEditTask, onDeleteTask }
             <th style={{ width: 60 }}>Done</th>
             <th style={{ width: 110 }}>ID</th>
             <th>Title</th>
-            <th>Description</th>
-            <th style={{ width: 120 }}>Priority</th>
-            <th>Dependencies</th>
-            <th>Tags</th>
+            <th style={{ minWidth: 220 }}>Description</th>
+            <th style={{ width: 90 }}>Priority</th>
+            <th style={{ width: 120, maxWidth: 120 }}>Tags</th>
             <th style={{ width: 120 }}>Actions</th>
           </tr>
         </thead>
@@ -32,6 +32,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEditTask, onDeleteTask }
               index={idx}
               onEdit={onEditTask}
               onDelete={onDeleteTask}
+              allTags={allTags}
             />
           ))}
         </tbody>

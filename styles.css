@@ -16,6 +16,7 @@
     --user-msg: #bfc8d6;
     --ai-msg: #a7ffcf;
     --muted-text: #a5b4d6;
+    --tag-bg: #444c56;
 }
 
 [data-theme="light"] {
@@ -36,6 +37,7 @@
     --user-msg: #24292f;
     --ai-msg: #0969da;
     --muted-text: #6e7781;
+    --tag-bg: #e1e4e8;
 }
 
 * {
