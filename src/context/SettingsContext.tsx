@@ -2,18 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type Settings = {
   apiKey: string;
+  openrouterApiKey?: string;
   model: string;
   provider: "openai" | "openrouter";
   systemPrompt?: string;
+  theme?: "light" | "dark";
 };
 
 const SETTINGS_KEY = "taskgpt_settings";
 
 const defaultSettings: Settings = {
   apiKey: "",
+  openrouterApiKey: "",
   model: "gpt-4o-mini",
   provider: "openai",
-  systemPrompt: ""
+  systemPrompt: "",
+  theme: "dark"
 };
 
 const SettingsContext = createContext<{

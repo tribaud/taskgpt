@@ -48,6 +48,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               />
             </div>
             <div className="form-group">
+              <label>Clé API OpenRouter</label>
+              <input
+                type="password"
+                name="openrouterApiKey"
+                value={local.openrouterApiKey ?? ""}
+                onChange={handleChange}
+                placeholder="Entrez votre clé API OpenRouter"
+                autoComplete="off"
+              />
+            </div>
+            <div className="form-group">
               <label>Modèle</label>
               <input
                 type="text"
@@ -72,7 +83,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <h3>Apparence</h3>
             <div className="form-group">
               <label>Thème</label>
-              <select disabled>
+              <select name="theme" value={local.theme ?? "dark"} onChange={handleChange}>
                 <option value="dark">Sombre</option>
                 <option value="light">Clair</option>
               </select>

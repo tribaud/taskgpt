@@ -1,7 +1,7 @@
-import React, { useState, useEffect, createContext } from "react";
+import React, { useEffect, createContext } from "react";
 import TaskEditor from "./TaskEditor/TaskEditor";
 import ChatPanel from "./Chat/ChatPanel";
-import { SettingsProvider } from "../context/SettingsContext";
+import { SettingsProvider, useSettings } from "../context/SettingsContext";
 
 // Palette inspirée de GitHub
 const GRAY_DARK_BG = "#22272e";
@@ -17,10 +17,9 @@ const THEME_KEY = "taskgpt_theme";
 
 export const ThemeContext = createContext<"light" | "dark">("dark");
 
-const App: React.FC = () => {
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    return (localStorage.getItem(THEME_KEY) as "light" | "dark") || "dark";
-  });
+const AppContent: React.FC = () => {
+  const { settings, setSettings } = useSettings();
+  const theme = settings.theme ?? "dark";
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
@@ -29,70 +28,74 @@ const App: React.FC = () => {
     document.body.style.color = theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT;
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => (t === "light" ? "dark" : "light"));
+  const toggleTheme = () => setSettings({ theme: theme === "light" ? "dark" : "light" });
 
   return (
-    <SettingsProvider>
-      <ThemeContext.Provider value={theme}>
-        <div
-          className="app-root"
+    <ThemeContext.Provider value={theme}>
+      <div
+        className="app-root"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          background: theme === "dark" ? GRAY_DARK_BG : GRAY_LIGHT_BG,
+          color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
+        }}
+      >
+        <header
           style={{
             display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 24px 0 24px",
             background: theme === "dark" ? GRAY_DARK_BG : GRAY_LIGHT_BG,
             color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
           }}
         >
-          <header
+          <h1 style={{ margin: 0, fontSize: "2rem" }}>Éditeur de tâches (tasks.json) + Chat IA</h1>
+          <button
+            id="themeToggle"
+            className="theme-toggle"
+            title="Changer le thème"
+            style={{ fontSize: 24, marginLeft: 16, background: "none", border: "none", color: "inherit", cursor: "pointer" }}
+            onClick={toggleTheme}
+          >
+            {theme === "light" ? "☀️" : "🌙"}
+          </button>
+        </header>
+        <div style={{ display: "flex", flex: 1 }}>
+          <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "16px 24px 0 24px",
-              background: theme === "dark" ? GRAY_DARK_BG : GRAY_LIGHT_BG,
+              flex: 2,
+              padding: 16,
+              background: theme === "dark" ? GRAY_DARK_PANEL : GRAY_LIGHT_PANEL,
+              borderRight: `1px solid ${theme === "dark" ? GRAY_DARK_BORDER : GRAY_LIGHT_BORDER}`,
               color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
             }}
           >
-            <h1 style={{ margin: 0, fontSize: "2rem" }}>Éditeur de tâches (tasks.json) + Chat IA</h1>
-            <button
-              id="themeToggle"
-              className="theme-toggle"
-              title="Changer le thème"
-              style={{ fontSize: 24, marginLeft: 16, background: "none", border: "none", color: "inherit", cursor: "pointer" }}
-              onClick={toggleTheme}
-            >
-              {theme === "light" ? "☀️" : "🌙"}
-            </button>
-          </header>
-          <div style={{ display: "flex", flex: 1 }}>
-            <div
-              style={{
-                flex: 2,
-                padding: 16,
-                background: theme === "dark" ? GRAY_DARK_PANEL : GRAY_LIGHT_PANEL,
-                borderRight: `1px solid ${theme === "dark" ? GRAY_DARK_BORDER : GRAY_LIGHT_BORDER}`,
-                color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT
-              }}
-            >
-              <TaskEditor />
-            </div>
-            <div
-              style={{
-                flex: 1,
-                padding: 16,
-                background: theme === "dark" ? GRAY_DARK_PANEL : GRAY_LIGHT_PANEL,
-                color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT,
-                minHeight: "100vh"
-              }}
-            >
-              <ChatPanel />
-            </div>
+            <TaskEditor />
+          </div>
+          <div
+            style={{
+              flex: 1,
+              padding: 16,
+              background: theme === "dark" ? GRAY_DARK_PANEL : GRAY_LIGHT_PANEL,
+              color: theme === "dark" ? GRAY_DARK_TEXT : GRAY_LIGHT_TEXT,
+              minHeight: "100vh"
+            }}
+          >
+            <ChatPanel />
           </div>
         </div>
-      </ThemeContext.Provider>
-    </SettingsProvider>
+      </div>
+    </ThemeContext.Provider>
   );
 };
+
+const App: React.FC = () => (
+  <SettingsProvider>
+    <AppContent />
+  </SettingsProvider>
+);
 
 export default App;
