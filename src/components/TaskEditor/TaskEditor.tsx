@@ -1,3 +1,12 @@
 import React from "react";
-const TaskEditor: React.FC = () => <div>TaskEditor</div>;
+import Toolbar from "./Toolbar";
+import TaskTable from "./TaskTable";
+
+const TaskEditor: React.FC = () => (
+  <div>
+    <Toolbar />
+    <TaskTable />
+  </div>
+);
+
 export default TaskEditor;
