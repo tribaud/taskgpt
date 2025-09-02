@@ -99,9 +99,165 @@ function renderTable() {
         const tdDeps = document.createElement('td'); tdDeps.contentEditable = 'true' as 'true'; tdDeps.textContent = (t.dependencies || []).join(', ');
         tdDeps.oninput = () => { t.dependencies = tdDeps.textContent.split(',').map(s => s.trim()).filter(Boolean); };
 
-        // tags
-        const tdTags = document.createElement('td'); tdTags.contentEditable = 'true' as 'true'; tdTags.textContent = (t.tags || []).join(', ');
-        tdTags.oninput = () => { t.tags = tdTags.textContent.split(',').map(s => s.trim()).filter(Boolean); };
+        // tags (champ texte + dropdown filtrée)
+        const tdTags = document.createElement('td');
+        // Liste des tags existants (tous tasks)
+        const allTags = Array.from(new Set(state.data.tasks.flatMap(task => task.tags || []))).filter(Boolean);
+
+        // Container pour les tags sélectionnés
+        const tagsContainer = document.createElement('div');
+        tagsContainer.style.display = 'flex';
+        tagsContainer.style.flexWrap = 'wrap';
+        tagsContainer.style.gap = '4px';
+
+        // Fonction pour afficher les tags sélectionnés
+        function renderSelectedTags() {
+            tagsContainer.innerHTML = '';
+            (t.tags || []).forEach((tag, tagIdx) => {
+                const tagElem = document.createElement('span');
+                tagElem.textContent = tag;
+                tagElem.style.background = '#e1e4e8';
+                tagElem.style.borderRadius = '3px';
+                tagElem.style.padding = '2px 6px';
+                tagElem.style.marginRight = '2px';
+                tagElem.style.fontSize = '0.9em';
+                tagElem.style.display = 'inline-flex';
+                tagElem.style.alignItems = 'center';
+
+                // bouton pour retirer le tag
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '×';
+                removeBtn.style.marginLeft = '4px';
+                removeBtn.style.background = 'none';
+                removeBtn.style.border = 'none';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.onclick = () => {
+                    t.tags.splice(tagIdx, 1);
+                    renderSelectedTags();
+                    saveSnapshot('auto');
+                };
+                tagElem.appendChild(removeBtn);
+                tagsContainer.appendChild(tagElem);
+            });
+        }
+        renderSelectedTags();
+
+        // Champ texte pour ajouter un tag
+        const tagInput = document.createElement('input');
+        tagInput.type = 'text';
+        tagInput.placeholder = 'Ajouter ou chercher un tag...';
+        tagInput.style.flex = '1';
+        tagInput.style.minWidth = '100px';
+
+        // Dropdown filtrée
+        const dropdown = document.createElement('div');
+        dropdown.style.position = 'absolute';
+        dropdown.style.left = '0';
+        dropdown.style.top = '100%';
+        dropdown.style.width = '100%';
+        dropdown.style.background = '#fff';
+        dropdown.style.border = '2px solid #007bff';
+        dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        dropdown.style.zIndex = '1000';
+        dropdown.style.display = 'none';
+        dropdown.style.maxHeight = '160px';
+        dropdown.style.overflowY = 'auto';
+        dropdown.style.fontSize = '0.95em';
+
+        // Positionnement relatif
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.alignItems = 'stretch';
+        wrapper.appendChild(tagsContainer);
+        wrapper.appendChild(tagInput);
+        wrapper.appendChild(dropdown);
+
+        // Gestion de la navigation clavier dans la dropdown
+        let dropdownIndex = -1;
+        let filtered: string[] = [];
+
+        function updateDropdown() {
+            const val = tagInput.value.toLowerCase();
+            dropdown.innerHTML = '';
+            filtered = allTags.filter(tag => tag.toLowerCase().includes(val) && !t.tags.includes(tag));
+            if (filtered.length > 0 && val.length > 0) {
+                filtered.forEach((tag, i) => {
+                    const item = document.createElement('div');
+                    item.textContent = tag;
+                    item.style.padding = '4px 8px';
+                    item.style.cursor = 'pointer';
+                    if (i === dropdownIndex) {
+                        item.style.background = '#007bff';
+                        item.style.color = '#fff';
+                    }
+                    item.onmousedown = () => {
+                        t.tags.push(tag);
+                        tagInput.value = '';
+                        saveSnapshot('auto');
+                        renderTable();
+                    };
+                    dropdown.appendChild(item);
+                });
+                // Corrige l'index si hors bornes
+                if (dropdownIndex < 0) dropdownIndex = 0;
+                if (dropdownIndex >= filtered.length) dropdownIndex = filtered.length - 1;
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+                dropdownIndex = -1;
+            }
+        }
+
+        tagInput.addEventListener('input', () => {
+            dropdownIndex = -1;
+            updateDropdown();
+        });
+
+        // Ajout d'un tag par entrée clavier + navigation dropdown
+        tagInput.addEventListener('keydown', (e) => {
+            if (dropdown.style.display === 'block' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                if (filtered.length > 0) {
+                    if (e.key === 'ArrowDown') {
+                        dropdownIndex = (dropdownIndex + 1) % filtered.length;
+                    } else if (e.key === 'ArrowUp') {
+                        dropdownIndex = (dropdownIndex - 1 + filtered.length) % filtered.length;
+                    }
+                    updateDropdown();
+                }
+                e.preventDefault();
+            } else if (e.key === 'Enter') {
+                if (dropdown.style.display === 'block' && filtered.length > 0 && dropdownIndex >= 0) {
+                    // Sélectionne le tag surligné
+                    t.tags.push(filtered[dropdownIndex]);
+                    tagInput.value = '';
+                    saveSnapshot('auto');
+                    renderTable();
+                } else {
+                    const val = tagInput.value.trim();
+                    if (val && !t.tags.includes(val)) {
+                        t.tags.push(val);
+                        tagInput.value = '';
+                        saveSnapshot('auto');
+                        renderTable();
+                    }
+                }
+                e.preventDefault();
+            } else if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+                dropdownIndex = -1;
+            }
+        });
+
+        // Fermer la dropdown si clic ailleurs
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target as Node)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        tdTags.appendChild(wrapper);
 
         // actions
         const tdActions = document.createElement('td');
