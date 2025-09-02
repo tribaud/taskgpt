@@ -1,21 +1,12 @@
 import React from "react";
 import TaskRow from "./TaskRow";
+import { Task } from "./TaskEditor";
 
-// TODO: Remplacer par un vrai state global ou context
-const mockTasks = [
-  {
-    id: "T001",
-    title: "Exemple",
-    description: "Description de la tâche",
-    priority: "medium",
-    done: false,
-    dependencies: [],
-    tags: ["demo", "test"]
-  }
-];
+type TaskTableProps = {
+  tasks: Task[];
+};
 
-const TaskTable: React.FC = () => {
-  // À terme, remplacer mockTasks par un state/context global
+const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
   return (
     <div style={{ overflow: "auto", maxHeight: "60vh" }}>
       <table>
@@ -32,7 +23,7 @@ const TaskTable: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {mockTasks.map((task, idx) => (
+          {tasks.map((task, idx) => (
             <TaskRow key={task.id} task={task} index={idx} />
           ))}
         </tbody>
