@@ -32,7 +32,11 @@
     "vite": "^7.1.4"
   },
   "dependencies": {
-    "electron-store": "^8.0.0"
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "electron-store": "^8.0.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "build": {
     "appId": "com.taskgpt.app",
